@@ -151,22 +151,22 @@ public class BurpExtender implements IBurpExtender, IExtensionStateListener, ISc
 		
 		// Test cases for a "GET" request
 		if (reqInfo.getMethod().equals("GET")) {
-			RunTestOnParameters("GET", issues, reqInfo,  content, request, service, IParameter.PARAM_URL);
-			RunTestOnXForwardedHost("GET", issues, reqInfo, content, service);
+			//RunTestOnParameters("GET", issues, reqInfo,  content, request, service, IParameter.PARAM_URL);
+			//RunTestOnXForwardedHost("GET", issues, reqInfo, content, service);
 			RunTestOnHostHeader("GET", issues, reqInfo, content, service);
-			RunTestInUserAgent("GET", issues, reqInfo, content, service);
+			//RunTestInUserAgent("GET", issues, reqInfo, content, service);
 			RunTestInPath("GET", issues, reqInfo, content, service);
-			RunTestInReferer("GET", issues, reqInfo, content, service);
+			//RunTestInReferer("GET", issues, reqInfo, content, service);
 		}
 		
 		// Test cases for a "POST" request
 		if (reqInfo.getMethod().equals("POST")) {
-			RunTestOnParameters("POST", issues, reqInfo, content, request, service, IParameter.PARAM_BODY);
-			RunTestOnXForwardedHost("POST", issues, reqInfo, content, service);
+			//RunTestOnParameters("POST", issues, reqInfo, content, request, service, IParameter.PARAM_BODY);
+			//RunTestOnXForwardedHost("POST", issues, reqInfo, content, service);
 			RunTestOnHostHeader("POST", issues, reqInfo, content, service);
-			RunTestInUserAgent("POST", issues, reqInfo, content, service);
+			//RunTestInUserAgent("POST", issues, reqInfo, content, service);
 			RunTestInPath("POST", issues, reqInfo, content, service);
-			RunTestInReferer("POST", issues, reqInfo, content, service);
+			//RunTestInReferer("POST", issues, reqInfo, content, service);
 		}
 	}
 	
@@ -605,7 +605,10 @@ public class BurpExtender implements IBurpExtender, IExtensionStateListener, ISc
 		
 		List<String> headers1 = reqInfo.getHeaders();
 		List<String> headers2 = reqInfo.getHeaders();
-		
+		List<String> headers01 = reqInfo.getHeaders();
+		List<String> headers02 = reqInfo.getHeaders();
+	
+        // @host/
 		String[] pathParts1 = path.split(" ");
 		String newPath1 = method + " " + "@"+payload+pathParts1[1] + " HTTP/1.1";
 		headers1.set(0, newPath1);
@@ -614,6 +617,25 @@ public class BurpExtender implements IBurpExtender, IExtensionStateListener, ISc
 		callback.makeHttpRequest(content.getHttpService(), request1); 
 		
 		
+        // host:80/
+		String[] pathParts01 = path.split(" ");
+		String newPath01 = method + " " + payload + ":80" + pathParts01[1] + " HTTP/1.1";
+		headers01.set(0, newPath01);
+		
+		byte[] request01 = helpers.buildHttpMessage(headers01, null);
+		callback.makeHttpRequest(content.getHttpService(), request01); 
+
+
+        // allowed:80@internal/
+		String[] pathParts02 = path.split(" ");
+		String newPath02 = method + " " + host.split(" ")[1] + ":80" + "@" + payload + pathParts02[1] + " HTTP/1.1";
+		headers02.set(0, newPath02);
+		
+		byte[] request02 = helpers.buildHttpMessage(headers02, null);
+		callback.makeHttpRequest(content.getHttpService(), request02); 
+
+
+        // * full url * 
 		String[] pathParts2 = path.split(" ");
 		String newPath2;
 		if (Ui.isHttp) {
@@ -625,7 +647,8 @@ public class BurpExtender implements IBurpExtender, IExtensionStateListener, ISc
 		
 		byte[] request = helpers.buildHttpMessage(headers2, null);
 		callback.makeHttpRequest(content.getHttpService(), request); 
-		
+
+
 		for(IBurpCollaboratorInteraction interaction : context.fetchCollaboratorInteractionsFor(payload)) {
 			String client_ip = interaction.getProperty("client_ip");
 				        	
